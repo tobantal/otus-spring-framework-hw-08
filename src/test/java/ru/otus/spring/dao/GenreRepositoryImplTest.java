@@ -1,15 +1,16 @@
 package ru.otus.spring.dao;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 import ru.otus.spring.domain.Genre;
@@ -23,42 +24,56 @@ public class GenreRepositoryImplTest {
 	@Autowired
 	GenreRepository genreRepository;
 	
+	@Autowired
+	TestEntityManager em;
+	
 	@Test
 	public void insert() {
 		Genre genre = new Genre(null, "humor");
 		long countBefore = genreRepository.count();
+		
 		genreRepository.save(genre);
+		
 		assertEquals(countBefore + 1, genreRepository.count());
 		assertNotNull(genreRepository.findByName("humor"));
 	}
 
 	@Test
 	public void getById() {
-		Genre genre = genreRepository.findById(2L);
+		Genre savedGenre = em.persist(new Genre(null, "trash"));
+		
+		Genre genre = genreRepository.findById(savedGenre.getId());
+		
 		assertNotNull(genre);
-		assertEquals("horrors", genre.getName());
+		assertThat(savedGenre).isSameAs(genre);
 	}
 	
 	@Test
 	public void getAll() {
-		List<Genre> genres = genreRepository.findAll();
 		long count = genreRepository.count();
+		
+		List<Genre> genres = genreRepository.findAll();
+		
 		assertEquals(count, genres.size());
 	}
 	
 	@Test
 	public void deleteById() {
+		Genre savedGenre = em.persist(new Genre(null, "diary"));		
 		long countBefore = genreRepository.count();
-		genreRepository.deleteById(4L);
+		
+		genreRepository.deleteById(savedGenre.getId());
+		
 		assertEquals(countBefore - 1, genreRepository.count());
-		assertNull(genreRepository.findById(4L));
 	}
 	
 	@Test
 	public void getByName() {
-		String name = "horrors";
-		Genre genre = genreRepository.findByName(name);
+		Genre savedGenre = em.persist(new Genre(null, "western"));
+		
+		Genre genre = genreRepository.findByName(savedGenre.getName());
+		
 		assertNotNull(genre);
-		assertEquals("horrors", genre.getName());
+		assertThat(savedGenre).isSameAs(genre);
 	}
 }

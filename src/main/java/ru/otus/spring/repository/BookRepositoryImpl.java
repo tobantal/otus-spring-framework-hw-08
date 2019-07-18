@@ -37,7 +37,7 @@ public class BookRepositoryImpl implements BookRepository {
 
 	@Override
 	public List<Book> findAll() {
-		return em.createQuery("select b from Book b", Book.class).getResultList();
+		return em.createQuery("select b from Book b INNER JOIN FETCH b.author a INNER JOIN FETCH b.genre g", Book.class).getResultList();
 	}
 
 	@Override

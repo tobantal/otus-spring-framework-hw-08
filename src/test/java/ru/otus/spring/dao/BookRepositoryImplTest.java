@@ -3,13 +3,13 @@ package ru.otus.spring.dao;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 import ru.otus.spring.domain.Author;
@@ -24,61 +24,88 @@ public class BookRepositoryImplTest {
 	
 	@Autowired
 	BookRepository bookRerpository;
+	
+	@Autowired
+	TestEntityManager em;
 
 	@Test
 	public void testInsert() {
-		Author author = new Author(1L, "Ivanov");
-		Genre genre = new Genre(1L, "comics");
-		Book book = new Book(null, "YoYo", author, genre);
+		Author author = em.persist(new Author(null, "Zaitseva"));
+		Genre genre = em.persist(new Genre(null, "algebra"));
+		Book book = new Book(null, "Algebra for chidren", author, genre);
 		long countBefore = bookRerpository.count();
-		bookRerpository.save(book);
-		assertEquals(countBefore + 1, bookRerpository.count());
-		Book savedBook = bookRerpository.findByName("YoYo");
-		assertThat(savedBook.getAuthor()).isEqualToComparingFieldByField(author);
-		assertThat(savedBook.getGenre()).isEqualToComparingFieldByField(genre);
+		
+		book = bookRerpository.save(book);
+		
+		assertEquals(countBefore + 1, bookRerpository.count());	
+		Book savedBook = em.find(Book.class, book.getId());
+		assertThat(savedBook).isEqualToComparingFieldByField(book);
 	}
 	
 	@Test
 	public void testGetById() {
-		Book book = bookRerpository.findById(1L);
+		Author author = em.persist(new Author(null, "Romanov"));
+		Genre genre = em.persist(new Genre(null, "geometry"));
+		Book savedBook = em.persist(new Book(null, "Box&Circle", author, genre));
+		
+		Book book = bookRerpository.findById(savedBook.getId());
+		
 		assertNotNull(book);
-		assertEquals("Desert rose", book.getName());
+		assertThat(savedBook).isEqualToComparingFieldByField(book);
 	}
 	
 	@Test
 	public void testGetAll() {
-		List<Book> books = bookRerpository.findAll();
 		long count = bookRerpository.count();
+		
+		List<Book> books = bookRerpository.findAll();
+		
 		assertEquals(count, books.size());
 	}
 
 	@Test
 	public void testDeleteById() {
+		Author author = em.persist(new Author(null, "Yulina"));
+		Genre genre = em.persist(new Genre(null, "enlish"));
+		Book savedBook = em.persist(new Book(null, "UK English", author, genre));
 		long countBefore = bookRerpository.count();
-		bookRerpository.deleteById(3L);
+		
+		bookRerpository.deleteById(savedBook.getId());
+		
 		assertEquals(countBefore - 1, bookRerpository.count());
-		assertNull(bookRerpository.findById(3L));		
 	}
 
 	@Test
 	public void testGetByName() {
-		String name = "Desert rose";
-		Book book = bookRerpository.findByName(name);
+		Author author = em.persist(new Author(null, "Tolstoy"));
+		Genre genre = em.persist(new Genre(null, "Russian"));
+		Book savedBook = em.persist(new Book(null, "War&Peace", author, genre));
+		
+		Book book = bookRerpository.findByName(savedBook.getName());
+		
 		assertNotNull(book);
-		assertThat(book.getId()).isEqualTo(1L);
+		assertThat(savedBook).isEqualToComparingFieldByField(book);
 	}
 
 	@Test
 	public void testGetAllByAuthor() {
-		String name = "Petrov";
-		List<Book> books = bookRerpository.findByAuthor(name);
+		Author author = em.persist(new Author(null, "Kokorina"));
+		Genre genre = em.persist(new Genre(null, "lirics"));
+		Book savedBook = em.persist(new Book(null, "Red Sun", author, genre));
+		
+		List<Book> books = bookRerpository.findByAuthor(savedBook.getAuthor().getName());
+		
 		assertEquals(1, books.size());
 	}
 
 	@Test
 	public void testGetAllByGenre() {
-		String name = "fantasy";
-		List<Book> books = bookRerpository.findByGenre(name);
+		Author author = em.persist(new Author(null, "Vilkin"));
+		Genre genre = em.persist(new Genre(null, "pirates"));
+		Book savedBook = em.persist(new Book(null, "Black Sails", author, genre));
+		
+		List<Book> books = bookRerpository.findByGenre(savedBook.getGenre().getName());
+		
 		assertEquals(1, books.size());
 	}
 }

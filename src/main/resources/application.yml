@@ -11,3 +11,7 @@ spring:
       settings:
         trace: false
         web-allow-others: false
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
