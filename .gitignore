@@ -47,3 +47,4 @@ work
 prepare
 data
 spring-shell.log
+**/application.properties
